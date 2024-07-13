@@ -27,5 +27,20 @@ contract Alchemist {
         emit SentMessage(_destinationDomain, _recipient, _message);
     }
 
+    // function encode(
+    //     uint8 opcode, 
+    //     bytes calldata parameter, 
+    //     bytes32 salt
+    // ) external view returns (bytes memory) {
+    //     return abi.encode(msg.sender, opcode, parameter, salt);
+    // }
+
+    // function completeDeployBytecode(
+    //     bytes calldata bytecode, 
+    //     bytes[] calldata params
+    // ) external pure returns (bytes memory) {
+    //     return abi.encode(bytecode, params);
+    // }
+
     receive() external payable {}
 }

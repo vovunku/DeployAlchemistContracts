@@ -26,6 +26,9 @@ import {
             [data.sender, data.opcode, data.hello_world, data.salt]
         );
 
+        console.log(encodedData)
+        console.log(data.salt)
+
         const res = await golem.handle(0, data.salt, encodedData);
 
         return { golem, owner, otherAccount };

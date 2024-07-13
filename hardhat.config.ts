@@ -88,9 +88,9 @@ const config: HardhatUserConfig = {
 
 task(
   "deploy-message-sender",
-  "deploys the HyperlaneMessageSender contract"
+  "deploys the Alchemist contract"
 ).setAction(async (taskArgs, hre) => {
-  console.log(`Deploying HyperlaneMessageSender on ${hre.network.name}`);
+  console.log(`Deploying Alchemist on ${hre.network.name}`);
   const origin = hre.network.name as ChainName;
   const outbox = hyperlaneCoreAddresses[origin].mailbox;
 
@@ -102,22 +102,21 @@ task(
   const address = await contract.getAddress();
 
   console.log(
-    `Deployed HyperlaneMessageSender to ${address} on ${hre.network.name} with transaction ${contract.deploymentTransaction()?.hash}`
+    `Deployed Alchemist to ${address} on ${hre.network.name} with transaction ${contract.deploymentTransaction()?.hash}`
   );
 
   console.log(`You can verify the contracts with:`);
   console.log(
-    `$ yarn hardhat verify --network ${hre.network.name} ${address} ${outbox}`
+    `$ npx hardhat verify --network ${hre.network.name} ${address} ${outbox}`
   );
 });
 
-task("deploy-message-receiver", "deploys the HyperlaneMessageReceiver contract")
+task("deploy-message-receiver", "deploys the Golem contract")
   .setAction(async (taskArgs, hre) => {
     console.log(
-      `Deploying HyperlaneMessageReceiver on ${hre.network.name} for messages`
+      `Deploying Golem on ${hre.network.name} for messages`
     );
     const remote = hre.network.name as ChainName;
-    const mailbox = hyperlaneCoreAddresses[remote].mailbox;
 
     const factory = await hre.ethers.getContractFactory(
       "Golem"
@@ -129,11 +128,11 @@ task("deploy-message-receiver", "deploys the HyperlaneMessageReceiver contract")
     const address = await contract.getAddress();
 
     console.log(
-      `Deployed HyperlaneMessageReceiver to ${address} on ${hre.network.name} with transaction ${contract.deploymentTransaction()?.hash}`
+      `Deployed Golem to ${address} on ${hre.network.name} with transaction ${contract.deploymentTransaction()?.hash}`
     );
     console.log(`You can verify the contracts with:`);
     console.log(
-      `$ yarn hardhat verify --network ${hre.network.name} ${address}`
+      `$ npx hardhat verify --network ${hre.network.name} ${address}`
     );
   });
 
