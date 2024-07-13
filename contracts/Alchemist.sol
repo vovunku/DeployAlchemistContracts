@@ -14,7 +14,7 @@ contract Alchemist {
         outbox = IMailbox(_outbox);
     }
 
-    function sendString(
+    function sendCommand(
         uint32 _destinationDomain,
         bytes32 _recipient,
         uint8 opcode, 
