@@ -47,3 +47,11 @@ npx hardhat deploy-light-message-receiver --network <your-network>
 ```
 
 Its a somehow more complicated version of an Golem, where's he doesn't receive instructions from an Alchemist directly, but only ipfs-identificator, which he will use after to access ipfs to retreave complete data.
+
+## Related projects
+
+DeployAlchemist Terraform module: https://github.com/ipsavitsky/DeployAlchemist
+
+
+DeployAlchemist utilisation example : https://github.com/ipsavitsky/DeployAlchemist_example
+
