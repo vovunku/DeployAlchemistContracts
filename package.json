@@ -9,6 +9,9 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@chainlink/contracts": "^1.1.1",
+    "@chainlink/env-enc": "^1.0.5",
+    "@chainlink/functions-toolkit": "^0.2.8",
     "@nomicfoundation/hardhat-ignition-ethers": "^0.15.5",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "hardhat": "^2.22.6"

@@ -44,6 +44,13 @@ const accounts = ["b9c2a58def60122d3905639e3e3ed67210d9aacd4d0bed6d037a9be574852
 //   "avalancheFujiTestnet": "0x5b6CFf85442B851A8e6eaBd2A4E4507B5135B3B0"
 // }
 
+const chainlinkConfig = {
+  "fuji": {
+    "donID": "0x66756e2d6176616c616e6368652d66756a692d31000000000000000000000000",
+    "router": "0xA9d587a00A31A52Ed70D6026794a8FC5E2F5dCb0",
+  },
+}
+
 import HyperlaneCoreAddresses from "./testnet_config.json"
 const hyperlaneCoreAddresses = HyperlaneCoreAddresses.chains
 
@@ -69,6 +76,14 @@ const config: HardhatUserConfig = {
     },
     scrollsepolia: {
       url: "https://avalanche-fuji.infura.io/v3/dd7c331ba8e544abbc52c63c7b160a54",
+      accounts: accounts
+    },
+    plumetestnet: {
+      url: "https://testnet-rpc.plumenetwork.xyz/http",
+      accounts: accounts
+    },
+    alfajores: {
+      url: "https://celo-alfajores.infura.io/v3/2bb3ae49c88b41b08124ec6cb46776ed",
       accounts: accounts
     }
   },
@@ -111,6 +126,31 @@ task(
   );
 });
 
+task(
+  "deploy-light-message-sender",
+  "deploys the LightAlchemist contract"
+).setAction(async (taskArgs, hre) => {
+  console.log(`Deploying LightAlchemist on ${hre.network.name}`);
+  const origin = hre.network.name as ChainName;
+  const outbox = hyperlaneCoreAddresses[origin].mailbox;
+
+  const factory = await hre.ethers.getContractFactory("LightAlchemist");
+
+  const contract = await factory.deploy(outbox);
+  await contract.waitForDeployment();
+
+  const address = await contract.getAddress();
+
+  console.log(
+    `Deployed LightAlchemist to ${address} on ${hre.network.name} with transaction ${contract.deploymentTransaction()?.hash}`
+  );
+
+  console.log(`You can verify the contracts with:`);
+  console.log(
+    `$ npx hardhat verify --network ${hre.network.name} ${address} ${outbox}`
+  );
+});
+
 task("deploy-message-receiver", "deploys the Golem contract")
   .setAction(async (taskArgs, hre) => {
     console.log(
@@ -136,99 +176,31 @@ task("deploy-message-receiver", "deploys the Golem contract")
     );
   });
 
-// task(
-//   "send-message-via-HyperlaneMessageSender",
-//   "sends a message via a deployed HyperlaneMessageSender"
-// )
-//   .addParam(
-//     "sender",
-//     "Address of the HyperlaneMessageSender",
-//     undefined,
-//     types.string,
-//     false
-//   )
-//   .addParam(
-//     "receiver",
-//     "address of the HyperlaneMessageReceiver",
-//     undefined,
-//     types.string,
-//     false
-//   )
-//   .addParam(
-//     "remote",
-//     "Name of the remote chain on which HyperlaneMessageReceiver is on",
-//     undefined,
-//     types.string,
-//     false
-//   )
-//   .addParam("message", "the message you want to send", "HelloWorld")
-//   .setAction(async (taskArgs, hre) => {
-//     const signer = (await hre.ethers.getSigners())[0];
-//     const remote = taskArgs.remote as ChainName;
-//     const remoteDomain = multiProvider.getDomainId(remote);
-//     const senderFactory = await hre.ethers.getContractFactory(
-//       "HyperlaneMessageSender"
-//     );
-//     const sender = senderFactory.attach(taskArgs.sender);
+  task("deploy-light-message-receiver", "deploys the LightGolem contract")
+  .setAction(async (taskArgs, hre) => {
+    console.log(
+      `Deploying LightGolem on ${hre.network.name} for messages`
+    );
+    const remote = hre.network.name as ChainName;
 
-//     console.log(
-//       `Sending message "${taskArgs.message}" from ${hre.network.name} to ${taskArgs.remote}`
-//     );
+    const factory = await hre.ethers.getContractFactory(
+      "LightGolem"
+    );
 
-//     const tx = await sender.sendString(
-//       remoteDomain,
-//       addressToBytes32(taskArgs.receiver),
-//       taskArgs.message
-//     );
+    const config = chainlinkConfig[hre.network.name];
 
-//     const receipt = await tx.wait();
-//     console.log(
-//       `Send message at txHash ${tx.hash}. Check the explorer at https://explorer.hyperlane.xyz/?search=${tx.hash}`
-//     );
+    const contract = await factory.deploy(config.router, config.donID);
+    await contract.waitForDeployment();
 
-//     console.log(
-//       "Pay for processing of the message via the InterchainGasPaymaster"
-//     );
-//     const messageId = getMessageIdFromDispatchLogs(receipt.logs);
-//     const igpAddress = hyperlaneCoreAddresses[hre.network.name].interchainGasPaymaster;
-//     const igp = new hre.ethers.Contract(
-//       igpAddress,
-//       INTERCHAIN_GAS_PAYMASTER_ABI,
-//       signer
-//     );
-//     const gasPayment = await igp.quoteGasPayment(
-//       remoteDomain,
-//       DESTINATIONGASAMOUNT
-//     );
-//     const igpTx = await igp.payForGas(
-//       messageId,
-//       remoteDomain,
-//       DESTINATIONGASAMOUNT,
-//       await signer.getAddress(),
-//       { value: gasPayment }
-//     );
-//     await igpTx.wait();
+    const address = await contract.getAddress();
 
-//     const recipientUrl = await multiProvider.tryGetExplorerAddressUrl(
-//       remote,
-//       taskArgs.receiver
-//     );
-//     console.log(
-//       `Check out the explorer page for receiver ${recipientUrl}#events`
-//     );
-//   });
+    console.log(
+      `Deployed LightGolem to ${address} on ${hre.network.name} with transaction ${contract.deploymentTransaction()?.hash}`
+    );
+    console.log(`You can verify the contracts with:`);
+    console.log(
+      `$ npx hardhat verify --network ${hre.network.name} ${address} ${config.router} ${config.donID}`
+    );
+  });
 
 export default config;
-
-// function getMessageIdFromDispatchLogs(logs: Log[]) {
-//   const mailboxInterface = new ethers.Interface(MAILBOX_ABI);
-//   for (const log of logs) {
-//     try {
-//       const parsedLog = mailboxInterface.parseLog(log);
-//       if (parsedLog.name === "DispatchId") {
-//         return parsedLog.args.messageId;
-//       }
-//     } catch (e) {}
-//   }
-//   return undefined;
-// }
